@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
+
 namespace SignalGenerator.Service
 {
     public class SignalHub : Hub
