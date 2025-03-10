@@ -1,0 +1,75 @@
+﻿@page "/"
+@using SignalGenerator.Service
+@using Microsoft.AspNetCore.SignalR.Client
+@inject SignalGeneratorService SignalGeneratorService
+@inject NavigationManager Navigation
+
+<h3>Signal Generator</h3>
+
+<div>
+    <label for="signalCount">Number of Signals:</label>
+    <input type="number" id="signalCount" @bind="signalCount" />
+</div>
+<div>
+    <label for="minFrequency">Min Frequency:</label>
+    <input type="number" id="minFrequency" @bind="minFrequency" />
+</div>
+<div>
+    <label for="maxFrequency">Max Frequency:</label>
+    <input type="number" id="maxFrequency" @bind="maxFrequency" />
+</div>
+
+<button @onclick="StartGenerating">Start</button>
+<button @onclick="StopGenerating">Stop</button>
+
+<h4>Generated Signals</h4>
+<ul>
+    @foreach (var signal in signals)
+    {
+        <li>@signal Hz</li>
+    }
+</ul>
+
+@code {
+    private int signalCount = 10;
+    private double minFrequency = 58.5;
+    private double maxFrequency = 60.5;
+    private List<double> signals = new();
+
+    private HubConnection? connection;
+
+    private async Task StartGenerating()
+    {
+        SignalGeneratorService.StartSignalGeneration(signalCount, minFrequency, maxFrequency, 1000);
+    }
+
+    private async Task StopGenerating()
+    {
+        SignalGeneratorService.StopSignalGeneration();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        connection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/signalHub")) // ✅ رفع مشکل مسیر
+            .WithAutomaticReconnect()
+            .Build();
+
+        connection.On<List<double>>("ReceiveSignalData", (data) =>
+        {
+            signals = data;
+            InvokeAsync(StateHasChanged);
+        });
+
+        await connection.StartAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (connection is { State: HubConnectionState.Connected }) // ✅ بررسی وضعیت قبل از Dispose
+        {
+            await connection.StopAsync();
+            await connection.DisposeAsync();
+        }
+    }
+}
