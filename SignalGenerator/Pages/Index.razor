@@ -10,13 +10,20 @@
     <label for="signalCount">Number of Signals:</label>
     <input type="number" id="signalCount" @bind="signalCount" />
 </div>
+
 <div>
-    <label for="minFrequency">Min Frequency:</label>
+    <label for="minFrequency">Min Frequency (Hz):</label>
     <input type="number" id="minFrequency" @bind="minFrequency" />
 </div>
+
 <div>
-    <label for="maxFrequency">Max Frequency:</label>
+    <label for="maxFrequency">Max Frequency (Hz):</label>
     <input type="number" id="maxFrequency" @bind="maxFrequency" />
+</div>
+
+<div>
+    <label for="interval">Interval (ms):</label>
+    <input type="number" id="interval" @bind="interval" />
 </div>
 
 <button @onclick="StartGenerating">Start</button>
@@ -30,35 +37,48 @@
     }
 </ul>
 
+<h4>Time Remaining: @timeRemaining seconds</h4>
+
 @code {
     private int signalCount = 10;
     private double minFrequency = 58.5;
     private double maxFrequency = 60.5;
+    private int interval = 10000;  // Interval in milliseconds- 1 secode 1signal
     private List<double> signals = new();
+    private double timeRemaining = 0;
 
     private HubConnection? connection;
 
     private async Task StartGenerating()
     {
-        SignalGeneratorService.StartSignalGeneration(signalCount, minFrequency, maxFrequency, 1000);
+        // Start signal generation
+        SignalGeneratorService.StartSignalGeneration(signalCount, minFrequency, maxFrequency, interval);
     }
 
     private async Task StopGenerating()
     {
+        // Stop signal generation
         SignalGeneratorService.StopSignalGeneration();
     }
 
     protected override async Task OnInitializedAsync()
     {
+        // Connect to SignalR hub
         connection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/signalHub")) // ✅ رفع مشکل مسیر
+            .WithUrl(Navigation.ToAbsoluteUri("/signalHub"))
             .WithAutomaticReconnect()
             .Build();
 
         connection.On<List<double>>("ReceiveSignalData", (data) =>
         {
             signals = data;
-            InvokeAsync(StateHasChanged);
+            InvokeAsync(StateHasChanged);  // Update the UI
+        });
+
+        connection.On<double>("UpdateTimeRemaining", (remainingTime) =>
+        {
+            timeRemaining = remainingTime;
+            InvokeAsync(StateHasChanged);  // Update the time remaining
         });
 
         await connection.StartAsync();
@@ -66,7 +86,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (connection is { State: HubConnectionState.Connected }) // ✅ بررسی وضعیت قبل از Dispose
+        // Dispose connection when component is disposed
+        if (connection is { State: HubConnectionState.Connected })
         {
             await connection.StopAsync();
             await connection.DisposeAsync();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SignalGenerator.Service;
+using SignalGenerator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
