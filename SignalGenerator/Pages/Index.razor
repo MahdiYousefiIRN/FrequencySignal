@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using SignalGenerator.Service
+@using SignalGenerator.Models
 @using Microsoft.AspNetCore.SignalR.Client
+
 @inject SignalGeneratorService SignalGeneratorService
 @inject NavigationManager Navigation
 
@@ -8,22 +10,22 @@
 
 <div>
     <label for="signalCount">Number of Signals:</label>
-    <input type="number" id="signalCount" @bind="signalCount" />
+    <input type="number" id="signalCount" value="@_SignalConfigGeneration.SignalCount" @onchange="UpdateSignalCount" />
 </div>
 
 <div>
     <label for="minFrequency">Min Frequency (Hz):</label>
-    <input type="number" id="minFrequency" @bind="minFrequency" />
+    <input type="number" id="minFrequency" value="@_SignalConfigGeneration.MinFrequency" @onchange="UpdateMinFrequency" />
 </div>
 
 <div>
     <label for="maxFrequency">Max Frequency (Hz):</label>
-    <input type="number" id="maxFrequency" @bind="maxFrequency" />
+    <input type="number" id="maxFrequency" value="@_SignalConfigGeneration.MaxFrequency" @onchange="UpdateMaxFrequency" />
 </div>
 
 <div>
     <label for="interval">Interval (ms):</label>
-    <input type="number" id="interval" @bind="interval" />
+    <input type="number" id="interval" value="@_SignalConfigGeneration.Interval" @onchange="UpdateInterval" />
 </div>
 
 <button @onclick="StartGenerating">Start</button>
@@ -33,38 +35,66 @@
 <ul>
     @foreach (var signal in signals)
     {
-        <li>@signal Hz</li>
+        <li>@signal.ToString("F4") Hz</li>
     }
 </ul>
 
-<h4>Time Remaining: @timeRemaining seconds</h4>
+<h4>Time Remaining: @_SignalConfigGeneration.TimeRemaining seconds</h4>
 
 @code {
-
-    private int signalCount = 10;
-    private double minFrequency = 58.5;
-    private double maxFrequency = 60.5;
-    private int interval = 10000;  // Interval in milliseconds- 1 secode 1signal
     private List<double> signals = new();
-    private double timeRemaining = 0;
-
+    private SignalConfigGeneration _SignalConfigGeneration = new SignalConfigGeneration();
     private HubConnection? connection;
+
+    private void UpdateSignalCount(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            _SignalConfigGeneration.SignalCount = value;
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateMinFrequency(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out double value))
+        {
+            _SignalConfigGeneration.MinFrequency = value;
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateMaxFrequency(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out double value))
+        {
+            _SignalConfigGeneration.MaxFrequency = value;
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateInterval(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            _SignalConfigGeneration.Interval = value;
+            SignalGeneratorService.UpdateInterval(value); // فقط مقدار Interval را تغییر بده
+            StateHasChanged();
+        }
+    }
 
     private async Task StartGenerating()
     {
-        // Start signal generation
-        SignalGeneratorService.StartSignalGeneration(signalCount, minFrequency, maxFrequency, interval);
+        SignalGeneratorService.StartSignalGeneration(_SignalConfigGeneration);
     }
 
     private async Task StopGenerating()
     {
-        // Stop signal generation
         SignalGeneratorService.StopSignalGeneration();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        // Connect to SignalR hub
         connection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalHub"))
             .WithAutomaticReconnect()
@@ -73,13 +103,13 @@
         connection.On<List<double>>("ReceiveSignalData", (data) =>
         {
             signals = data;
-            InvokeAsync(StateHasChanged);  // Update the UI
+            InvokeAsync(StateHasChanged);
         });
 
         connection.On<double>("UpdateTimeRemaining", (remainingTime) =>
         {
-            timeRemaining = remainingTime;
-            InvokeAsync(StateHasChanged);  // Update the time remaining
+            _SignalConfigGeneration.TimeRemaining = remainingTime;
+            InvokeAsync(StateHasChanged);
         });
 
         await connection.StartAsync();
@@ -87,7 +117,6 @@
 
     public async ValueTask DisposeAsync()
     {
-        // Dispose connection when component is disposed
         if (connection is { State: HubConnectionState.Connected })
         {
             await connection.StopAsync();

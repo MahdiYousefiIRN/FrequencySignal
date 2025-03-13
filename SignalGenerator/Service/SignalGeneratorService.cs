@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using SignalGenerator.Models;
 using SignalGenerator.Services;
 
 namespace SignalGenerator.Service
@@ -7,45 +8,53 @@ namespace SignalGenerator.Service
     {
         private readonly IHubContext<SignalHub> _hubContext;
         private Timer? _timer;
+        private SignalConfigGeneration? _config; // ذخیره تنظیمات برای بروزرسانی مقدار Interval
 
         public SignalGeneratorService(IHubContext<SignalHub> hubContext)
         {
             _hubContext = hubContext;
         }
 
-        public void StartSignalGeneration(int numberOfSignals, double minFrequency, double maxFrequency, int intervalInMilliseconds)
+        public void StartSignalGeneration(SignalConfigGeneration signalConfigGeneration)
         {
-            // اگر تایمر قبلاً در حال اجرا است، ابتدا آن را متوقف کنیم
-            StopSignalGeneration();
+            StopSignalGeneration(); // اطمینان از توقف تایمر قبلی
 
-            // تایمر جدید برای تولید سیگنال‌ها
-            _timer = new Timer(GenerateSignal, new { numberOfSignals, minFrequency, maxFrequency }, 0, intervalInMilliseconds);
+            _config = signalConfigGeneration; // ذخیره تنظیمات
+            _timer = new Timer(GenerateSignal, null, 0, _config.Interval);
         }
 
         private async void GenerateSignal(object? state)
         {
-            if (state is null) return;
+            if (_config is null) return;
 
-            var parameters = (dynamic)state;
             var random = new Random();
             var signalData = new List<double>();
 
-            // تولید سیگنال‌ها بر اساس پارامترهای ورودی
-            for (int i = 0; i < parameters.numberOfSignals; i++)
+            for (int i = 0; i < _config.SignalCount; i++)
             {
-                double frequency = random.NextDouble() * (parameters.maxFrequency - parameters.minFrequency) + parameters.minFrequency;
+                double frequency = random.NextDouble() * (_config.MaxFrequency - _config.MinFrequency) + _config.MinFrequency;
                 signalData.Add(frequency);
             }
 
-            // ارسال داده‌ها به UI از طریق SignalR
             await _hubContext.Clients.All.SendAsync("ReceiveSignalData", signalData);
+
+            // تغییر مقدار Interval در حال اجرا بدون نیاز به ایجاد تایمر جدید
+            _timer?.Change(_config.Interval, Timeout.Infinite);
         }
 
         public void StopSignalGeneration()
         {
-            // تایمر را متوقف و آزادسازی منابع
             _timer?.Dispose();
-            _timer = null; // اطمینان از این‌که تایمر دوباره مقداردهی نخواهد شد
+            _timer = null;
+        }
+
+        public void UpdateInterval(int newInterval)
+        {
+            if (_config is not null && _timer is not null)
+            {
+                _config.Interval = newInterval;
+                _timer.Change(0, newInterval); // تنظیم مقدار جدید برای تایمر
+            }
         }
     }
 }
