@@ -20,7 +20,7 @@ namespace SignalGenerator.Service
             StopSignalGeneration(); // اطمینان از توقف تایمر قبلی
 
             _config = signalConfigGeneration; // ذخیره تنظیمات
-            _timer = new Timer(GenerateSignal, null, 0, _config.Interval);
+            _timer = new Timer(GenerateSignal, null, 0, _config.IntervalMs);
         }
 
         private async void GenerateSignal(object? state)
@@ -39,7 +39,7 @@ namespace SignalGenerator.Service
             await _hubContext.Clients.All.SendAsync("ReceiveSignalData", signalData);
 
             // تغییر مقدار Interval در حال اجرا بدون نیاز به ایجاد تایمر جدید
-            _timer?.Change(_config.Interval, Timeout.Infinite);
+            _timer?.Change(_config.IntervalMs, Timeout.Infinite);
         }
 
         public void StopSignalGeneration()
@@ -52,7 +52,7 @@ namespace SignalGenerator.Service
         {
             if (_config is not null && _timer is not null)
             {
-                _config.Interval = newInterval;
+                _config.IntervalMs = newInterval;
                 _timer.Change(0, newInterval); // تنظیم مقدار جدید برای تایمر
             }
         }
