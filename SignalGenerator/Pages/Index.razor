@@ -1,10 +1,10 @@
 ﻿@page "/"
-@using SignalGenerator.Service
+@using SignalGenerator.Services
 @using SignalGenerator.Models
 @using Microsoft.AspNetCore.SignalR.Client
-
 @inject SignalGeneratorService SignalGeneratorService
-@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <h3>Signal Generator</h3>
 
@@ -78,41 +78,64 @@
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
             _SignalConfigGeneration.IntervalMs = value;
-            SignalGeneratorService.UpdateInterval(value); // فقط مقدار Interval را تغییر بده
+            SignalGeneratorService.UpdateInterval(value);
             StateHasChanged();
         }
     }
 
     private async Task StartGenerating()
     {
-        SignalGeneratorService.StartSignalGeneration(_SignalConfigGeneration);
+        try
+        {
+            var result = await SignalGeneratorService.StartSignalGeneration(_SignalConfigGeneration, CancellationToken.None);
+            Console.WriteLine(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 
     private async Task StopGenerating()
     {
-        SignalGeneratorService.StopSignalGeneration();
+        try
+        {
+            SignalGeneratorService.StopSignalGeneration();
+            Console.WriteLine("Signal generation stopped.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        connection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/signalHub"))
-            .WithAutomaticReconnect()
-            .Build();
-
-        connection.On<List<double>>("ReceiveSignalData", (data) =>
+        try
         {
-            signals = data;
-            InvokeAsync(StateHasChanged);
-        });
+            connection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/signalHub"))
+                .WithAutomaticReconnect()
+                .Build();
 
-        connection.On<double>("UpdateTimeRemaining", (remainingTime) =>
+            connection.On<List<double>>("ReceiveSignalData", (data) =>
+            {
+                signals = data;
+                InvokeAsync(StateHasChanged);
+            });
+
+            connection.On<double>("UpdateTimeRemaining", (remainingTime) =>
+            {
+                _SignalConfigGeneration.TimeRemainingSecs = remainingTime;
+                InvokeAsync(StateHasChanged);
+            });
+
+            await connection.StartAsync();
+        }
+        catch (Exception ex)
         {
-            _SignalConfigGeneration.TimeRemainingSecs = remainingTime;
-            InvokeAsync(StateHasChanged);
-        });
-
-        await connection.StartAsync();
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 
     public async ValueTask DisposeAsync()
