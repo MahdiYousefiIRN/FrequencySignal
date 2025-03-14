@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35806.99 d17.13
+VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalGenerator", "SignalGenerator\SignalGenerator.csproj", "{10CA7C8E-989B-481E-8FF5-CC07FC74775A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalMonitor", "SignalMonitor\SignalMonitor.csproj", "{1D7E067A-7676-48EC-8E0D-4C9F52F30080}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{10CA7C8E-989B-481E-8FF5-CC07FC74775A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10CA7C8E-989B-481E-8FF5-CC07FC74775A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10CA7C8E-989B-481E-8FF5-CC07FC74775A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D7E067A-7676-48EC-8E0D-4C9F52F30080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D7E067A-7676-48EC-8E0D-4C9F52F30080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D7E067A-7676-48EC-8E0D-4C9F52F30080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D7E067A-7676-48EC-8E0D-4C9F52F30080}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

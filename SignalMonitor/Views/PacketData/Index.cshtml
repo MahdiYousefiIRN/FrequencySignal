@@ -1,0 +1,23 @@
+﻿@model IEnumerable<SignalMonitor.Models.PacketData>
+
+<h2>Packet Data List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <!-- اضافه کردن سایر فیلدهای مورد نظر -->
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PacketId</td>
+                <td>@item.Value</td>
+                <!-- نمایش سایر فیلدها -->
+            </tr>
+        }
+    </tbody>
+</table>
