@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.EntityFrameworkCore;
 using SignalMonitor.Data;
 using SignalMonitor.SignalR;
 
@@ -6,7 +7,7 @@ namespace SignalMonitor
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args) // تغییر Main به async
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,27 @@ namespace SignalMonitor
 
             // تنظیم مسیر برای Hub SignalR
             app.MapHub<PacketDataHub>("/packetDataHub");
+
+            // راه‌اندازی اتصال SignalR به سرور
+            var connection = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5002/packetDataHub") // آدرس SignalR
+                .Build();
+
+            connection.On<List<double>>("ReceiveSignalData", (signalData) =>
+            {
+                Console.WriteLine("Received Signal Data: " + string.Join(", ", signalData));
+            });
+
+            try
+            {
+                // اتصال به SignalR
+                await connection.StartAsync();
+                Console.WriteLine("Connected to SignalR.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error connecting to SignalR: {ex.Message}");
+            }
 
             app.Run();
         }

@@ -7,6 +7,7 @@ using System.Text.Json;
 
 public class SignalGeneratorService
 {
+    private const string RequestUriAPI = "http://localhost:5002/api/packetdata";
     private readonly IHubContext<SignalHub> _hubContext;
     private readonly ModbusClientManager _modbusClientManager;
     private readonly ILogger<SignalGeneratorService> _logger;
@@ -137,10 +138,17 @@ public class SignalGeneratorService
     {
         try
         {
-            var jsonContent = JsonSerializer.Serialize(signalData);
+            // تبدیل داده‌های سیگنال به JSON
+            var jsonContent = JsonSerializer.Serialize(new
+            {
+                SignalData = signalData,  // داده‌های سیگنال به صورت لیست
+                Timestamp = DateTime.Now   // زمان ارسال
+            });
+
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("http://localhost:5001/api/signal", content);
+            // ارسال داده به API پروژه دوم
+            var response = await _httpClient.PostAsync(RequestUriAPI, content);
 
             if (response.IsSuccessStatusCode)
             {

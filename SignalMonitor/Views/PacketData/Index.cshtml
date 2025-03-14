@@ -2,22 +2,44 @@
 
 <h2>Packet Data List</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Data</th>
-            <!-- اضافه کردن سایر فیلدهای مورد نظر -->
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Data</title>
+</head>
+<body>
+    <h1>Packet Data</h1>
+
+    <table>
+        <thead>
             <tr>
-                <td>@item.PacketId</td>
-                <td>@item.Value</td>
-                <!-- نمایش سایر فیلدها -->
+                <th>Packet Id</th>
+                <th>Source IP</th>
+                <th>Destination IP</th>
+                <th>Protocol</th>
+                <th>Value</th>
+                <th>Status</th>
+                <th>Received Timestamp</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var data in Model)
+            {
+                <tr>
+                    <td>@data.PacketId</td>
+                    <td>@data.SourceIP</td>
+                    <td>@data.DestinationIP</td>
+                    <td>@data.Protocol</td>
+                    <td>@data.Value</td>
+                    <td>@data.Status</td>
+                    <td>@data.ReceivedTimestamp</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>
+

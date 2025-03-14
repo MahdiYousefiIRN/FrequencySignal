@@ -5,10 +5,15 @@ namespace SignalMonitor.SignalR
 {
     public class PacketDataHub : Hub
     {
-        // متدی برای ارسال داده‌ها به همه کلاینت‌ها
-        public async Task SendPacketDataAsync(PacketData packetData)
+       
+        public async Task SendMessage(string message)
         {
-            await Clients.All.SendAsync("ReceivePacketData", packetData);
+            await Clients.All.SendAsync("ReceiveMessage", message);
+        }
+
+        public async Task SendSignalData(List<double> signalData)
+        {
+            await Clients.All.SendAsync("ReceiveSignalData", signalData);
         }
     }
 }
