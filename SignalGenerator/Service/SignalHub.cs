@@ -6,11 +6,7 @@ namespace SignalGenerator.Services
 {
     public class SignalHub : Hub
     {
-        // ارسال داده‌های سیگنال به همه کلاینت‌ها
-        public async Task SendSignalData(List<SignalData> signals)
-        {
-            await Clients.All.SendAsync("ReceiveSignalData", signals);
-        }
+       
 
         // ارسال وضعیت ارسال بسته‌ها به همه کلاینت‌ها
         public async Task SendPacketCount(int sentPackets)
@@ -24,10 +20,6 @@ namespace SignalGenerator.Services
             await Clients.All.SendAsync("UpdateTimeRemaining", timeRemaining);
         }
 
-        // ارسال وضعیت سیگنال
-        public async Task SendSignalStatus(SignalData signal)
-        {
-            await Clients.All.SendAsync("UpdateSignalStatus", signal);
-        }
+       
     }
 }
