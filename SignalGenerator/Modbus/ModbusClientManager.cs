@@ -14,14 +14,13 @@ namespace SignalGenerator.Modbus
 
         public ModbusClientManager(IConfiguration configuration)
         {
-            // دریافت IP و Port از appsettings.json
-            ip = configuration["Modbus:Ip"] ?? "127.0.0.1";  // مقدار پیش‌فرض
-            port = int.TryParse(configuration["Modbus:Port"], out int parsedPort) ? parsedPort : 502; // مقدار پیش‌فرض
+            ip = configuration["Modbus:Ip"] ?? "127.0.0.1";
+            port = int.TryParse(configuration["Modbus:Port"], out int parsedPort) ? parsedPort : 502;
 
             modbusClient = new ModbusClient(ip, port);
         }
 
-        // متد اتصال به سرور Modbus
+        // Connect to Modbus server
         public void Connect()
         {
             try
@@ -38,7 +37,7 @@ namespace SignalGenerator.Modbus
             }
         }
 
-        // متد قطع اتصال
+        // Disconnect from Modbus server
         public void Disconnect()
         {
             try
@@ -55,7 +54,7 @@ namespace SignalGenerator.Modbus
             }
         }
 
-        // متد خواندن داده‌ها از Modbus
+        // Read data from Modbus
         public int[] ReadModbusData(int startAddress, int quantity)
         {
             try
@@ -67,17 +66,17 @@ namespace SignalGenerator.Modbus
                 else
                 {
                     Console.WriteLine("❌ Modbus Client is not connected!");
-                    return new int[0]; // مقدار پیش‌فرض
+                    return new int[0];
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Modbus Read Error: {ex.Message}");
-                return new int[0]; // مقدار پیش‌فرض
+                return new int[0];
             }
         }
 
-        // متد نوشتن داده‌ها در Modbus
+        // Write data to Modbus
         public void WriteModbusData(int startAddress, int[] data)
         {
             try
@@ -98,7 +97,7 @@ namespace SignalGenerator.Modbus
             }
         }
 
-        // متد اتصال مجدد در صورت قطع ارتباط
+        // Reconnect to Modbus server
         public void Reconnect()
         {
             Disconnect();
