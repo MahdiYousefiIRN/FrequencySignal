@@ -29,7 +29,7 @@ builder.Services.AddScoped<SignalGeneratorService>(); // ثبت SignalGeneratorS
 // پیکربندی API برای ارسال داده‌ها
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Server:ApiUrl"]);
+    client.BaseAddress = new Uri(builder.Configuration["AppSettings:ApiUrl"]);
 });
 
 // ساخت اپلیکیشن

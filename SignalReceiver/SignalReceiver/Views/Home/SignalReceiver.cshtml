@@ -1,0 +1,32 @@
+﻿@model List<double>
+
+@{
+    ViewData["Title"] = "Signal Receiver";
+}
+
+<div class="container">
+    <h1>Signal Receiver</h1>
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Signal Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var signal in Model)
+                {
+                    <tr>
+                        <td>@signal</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No signal data available.</p>
+    }
+</div>

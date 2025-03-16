@@ -16,7 +16,8 @@ public class SignalGeneratorService
     private CancellationTokenSource? _cancellationTokenSource;
     private Timer? _signalGenerationTimer;
 
-    private const string RequestUriAPI = "http://localhost:5002/api/packetdata";
+    // URL API از فایل appsettings.json
+    private readonly string RequestUriAPI;
 
     // کال‌بک برای به روز رسانی سیگنال‌ها
     private Action<List<double>> _updateSignalDataCallback;
@@ -25,12 +26,16 @@ public class SignalGeneratorService
         IHubContext<SignalHub> hubContext,
         ModbusClientManager modbusClientManager,
         ILogger<SignalGeneratorService> logger,
-        HttpClient httpClient)
+        HttpClient httpClient,
+        IConfiguration configuration)  // اضافه کردن IConfiguration برای خواندن تنظیمات
     {
         _hubContext = hubContext;
         _modbusClientManager = modbusClientManager;
         _logger = logger;
         _httpClient = httpClient;
+
+        // خواندن URL از تنظیمات
+        RequestUriAPI = configuration["AppSettings:ApiUrl"] + "/api/packetdata"; // استفاده از URL API در فایل appsettings.json
     }
 
     // این متد برای اتصال کال‌بک UI به سرویس است
