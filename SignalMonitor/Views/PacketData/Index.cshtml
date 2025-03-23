@@ -1,20 +1,97 @@
 ﻿@model IEnumerable<SignalMonitor.Models.PacketData>
 
-<h2>Packet Data List</h2>
+@{
+    ViewData["Title"] = "Packet Data"; // عنوان صفحه
+}
 
+@section Styles {
+    <style>
+        /* تعریف رنگ‌ها و تنظیمات تم برای حالت روشن و تاریک */
+        :root {
+            /* رنگ‌های حالت روشن */
+            --bg-color-light: #f8f9fa;
+            --text-color-light: #212529;
+            --table-bg-light: #ffffff;
+            --table-border-light: #dee2e6;
+            /* رنگ‌های حالت تاریک */
+            --bg-color-dark: #121212;
+            --text-color-dark: #ffffff;
+            --table-bg-dark: #1e1e1e;
+            --table-border-dark: #333;
+            /* رنگ‌های چارت */
+            --chart-line-light: blue;
+            --chart-bg-light: rgba(0, 0, 255, 0.2);
+            --chart-line-dark: cyan;
+            --chart-bg-dark: rgba(0, 255, 255, 0.2);
+        }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Packet Data</title>
-</head>
-<body>
-    <h1>Packet Data</h1>
+        /* تنظیمات کلی بدنه صفحه */
+        body {
+            background-color: var(--bg-color-light); /* رنگ پس‌زمینه حالت روشن */
+            color: var(--text-color-light); /* رنگ متن حالت روشن */
+            transition: all 0.3s ease; /* اضافه کردن انیمیشن انتقال تم */
+        }
 
-    <table>
-        <thead>
+        /* استایل جدول برای حالت روشن */
+        .table {
+            background-color: var(--table-bg-light);
+            border-color: var(--table-border-light);
+        }
+
+        /* استایل هدر جدول در حالت تاریک */
+        .table-dark th {
+            background-color: #343a40;
+        }
+
+        /* کلاس مربوط به حالت تاریک */
+        .dark-mode {
+            background-color: var(--bg-color-dark) !important;
+            color: var(--text-color-dark) !important;
+        }
+
+            /* استایل جدول در حالت تاریک */
+            .dark-mode .table {
+                background-color: var(--table-bg-dark) !important;
+                border-color: var(--table-border-dark) !important;
+            }
+
+        /* دکمه تغییر تم */
+        .toggle-theme {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* استایل دکمه حالت روشن */
+        .light-mode-btn {
+            background: #212529;
+            color: #fff;
+        }
+
+        /* استایل دکمه حالت تاریک */
+        .dark-mode-btn {
+            background: #f8f9fa;
+            color: #212529;
+        }
+    </style>
+}
+
+<!-- دکمه تغییر تم که برای سوییچ بین حالت روشن و تاریک استفاده می‌شود -->
+<button id="theme-toggle" class="toggle-theme light-mode-btn">🌙 حالت تاریک</button>
+
+<!-- عنوان بخش لیست داده‌ها -->
+<h2 class="text-center mb-4">Packet Data List</h2>
+
+@if (Model.Any())
+{
+    <!-- نمایش جدول در صورت وجود داده‌ها -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
             <tr>
                 <th>Packet Id</th>
                 <th>Source IP</th>
@@ -28,6 +105,7 @@
         <tbody>
             @foreach (var data in Model)
             {
+                <!-- هر ردیف داده‌ها در جدول -->
                 <tr>
                     <td>@data.PacketId</td>
                     <td>@data.SourceIP</td>
@@ -35,11 +113,98 @@
                     <td>@data.Protocol</td>
                     <td>@data.Value</td>
                     <td>@data.Status</td>
-                    <td>@data.ReceivedTimestamp</td>
+                    <td>@data.ReceivedTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
                 </tr>
             }
         </tbody>
     </table>
-</body>
-</html>
 
+    <!-- عنوان چارت داده‌ها -->
+    <h3 class="text-center mt-5">Real-time Packet Data Monitoring</h3>
+    <canvas id="packetChart" width="400" height="200"></canvas> <!-- چارت برای نمایش داده‌های real-time -->
+}
+else
+{
+    <!-- پیامی که در صورت عدم وجود داده‌ها نمایش داده می‌شود -->
+    <div class="alert alert-warning text-center" role="alert">
+        No packet data available.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // کد جاوااسکریپت برای بارگذاری چارت و تغییر تم
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctx = document.getElementById("packetChart").getContext("2d");
+
+            // دریافت داده‌ها از مدل و تبدیل به فرمت قابل استفاده برای جاوااسکریپت
+            var packetData = @Html.Raw(Json.Serialize(Model.Select(d => new { d.ReceivedTimestamp, d.Value })));
+
+            // استخراج لیبل‌ها و مقادیر برای چارت
+            var labels = packetData.map(d => new Date(d.ReceivedTimestamp).toLocaleString());
+            var values = packetData.map(d => d.Value);
+
+            // بررسی وضعیت تم (روشن یا تاریک) از localStorage
+            var isDarkMode = localStorage.getItem("dark-mode") === "enabled";
+
+            // تنظیمات چارت
+            var chartConfig = {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Packet Values",
+                        data: values,
+                        borderColor: isDarkMode ? "cyan" : "blue", // تغییر رنگ خط چارت بسته به وضعیت تم
+                        backgroundColor: isDarkMode ? "rgba(0, 255, 255, 0.2)" : "rgba(0, 0, 255, 0.2)", // تغییر رنگ پس‌زمینه چارت
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: "Timestamp" } }, // محور X برای زمان
+                        y: { title: { display: true, text: "Value" }, beginAtZero: true } // محور Y برای مقدار
+                    }
+                }
+            };
+
+            // ساخت چارت
+            var chart = new Chart(ctx, chartConfig);
+
+            // انتخاب دکمه تغییر تم
+            const themeToggleButton = document.getElementById("theme-toggle");
+            const body = document.body;
+
+            // تابع برای بروزرسانی تم
+            function updateTheme() {
+                if (isDarkMode) {
+                    body.classList.add("dark-mode");
+                    themeToggleButton.textContent = "☀️ حالت روشن";
+                    themeToggleButton.classList.remove("light-mode-btn");
+                    themeToggleButton.classList.add("dark-mode-btn");
+                    chartConfig.data.datasets[0].borderColor = "cyan";
+                    chartConfig.data.datasets[0].backgroundColor = "rgba(0, 255, 255, 0.2)";
+                } else {
+                    body.classList.remove("dark-mode");
+                    themeToggleButton.textContent = "🌙 حالت تاریک";
+                    themeToggleButton.classList.remove("dark-mode-btn");
+                    themeToggleButton.classList.add("light-mode-btn");
+                    chartConfig.data.datasets[0].borderColor = "blue";
+                    chartConfig.data.datasets[0].backgroundColor = "rgba(0, 0, 255, 0.2)";
+                }
+                chart.update(); // به‌روزرسانی چارت بعد از تغییر تم
+            }
+
+            // اضافه کردن event listener برای تغییر تم
+            themeToggleButton.addEventListener("click", function () {
+                isDarkMode = !isDarkMode; // تغییر وضعیت تم
+                localStorage.setItem("dark-mode", isDarkMode ? "enabled" : "disabled"); // ذخیره وضعیت تم در localStorage
+                updateTheme(); // بروزرسانی تم و چارت
+            });
+
+            updateTheme(); // بروزرسانی تم اولیه
+        });
+    </script>
+}

@@ -11,48 +11,45 @@ var builder = WebApplication.CreateBuilder(args);
 // بارگذاری تنظیمات از فایل appsettings.json
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-// افزودن خدمات مختلف به DI container
-builder.Services.AddRazorPages(); // فعال سازی Razor Pages (در صورتی که نیاز دارید)
-builder.Services.AddServerSideBlazor(); // فعال سازی Blazor Server Side (در صورتی که نیاز دارید)
-builder.Services.AddSignalR(); // اضافه کردن SignalR
+// افزودن سرویس‌های مورد نیاز به DI Container
+builder.Services.AddRazorPages(); // فعال‌سازی Razor Pages (در صورت نیاز)
+builder.Services.AddServerSideBlazor(); // فعال‌سازی Blazor Server
+builder.Services.AddSignalR(); // افزودن SignalR برای ارتباطات بلادرنگ
+builder.Services.AddHttpClient(); // پیکربندی HttpClient برای ارسال درخواست‌های HTTP
 
-// پیکربندی Modbus
-builder.Services.AddSingleton<ModbusClientManager>(sp =>
-    new ModbusClientManager(builder.Configuration["AppSettings:Modbus:Host"],
-                           int.Parse(builder.Configuration["AppSettings:Modbus:Port"])));
-builder.Services.AddScoped<SignalReceiverService>(); // اضافه کردن سرویس SignalReceiver
-builder.Services.AddHttpClient(); // پیکربندی HTTP Client
+// پیکربندی و ثبت سرویس ModbusClientManager به‌صورت Singleton
+builder.Services.AddSingleton(sp =>
+    new ModbusClientManager(
+        builder.Configuration["AppSettings:Modbus:Host"],
+        int.Parse(builder.Configuration["AppSettings:Modbus:Port"])
+    ));
 
-// ساخت اپلیکیشن
+// ثبت SignalReceiverService به‌صورت Scoped (هر درخواست یک نمونه جدید)
+builder.Services.AddScoped<SignalReceiverService>();
+
 var app = builder.Build();
 
-// پیکربندی درخواست‌ها در محیط‌های مختلف
+// تنظیمات مربوط به محیط اجرایی (Production/Development)
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    app.UseExceptionHandler("/Error"); // هدایت به صفحه‌ی خطا در محیط Production
+    app.UseHsts(); // فعال‌سازی HSTS برای امنیت بیشتر
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles(); // استفاده از فایل‌های استاتیک
-app.UseRouting(); // فعال سازی مسیریابی
+// فعال‌سازی Middlewareهای ضروری
+app.UseHttpsRedirection(); // تغییر درخواست‌های HTTP به HTTPS
+app.UseStaticFiles(); // ارائه‌ی فایل‌های استاتیک (CSS, JS, تصاویر و...)
+app.UseRouting(); // فعال‌سازی مسیریابی
 
-// تنظیم روت‌ها و مسیرهای مختلف
-
-// پیکربندی مسیر برای MVC (در صورت استفاده از MVC Controller)
+// تنظیم مسیرهای مربوط به MVC، Razor Pages، Blazor و SignalR
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
-// پیکربندی مسیر برای Razor Pages (اگر نیاز دارید)
-app.MapRazorPages(); // مسیریابی برای Razor Pages
+app.MapRazorPages(); // فعال‌سازی Razor Pages
+app.MapBlazorHub(); // تنظیم Hub برای Blazor
+app.MapHub<SignalHub>("/signalHub"); // تنظیم مسیر Hub برای SignalR
 
-// مپ کردن Blazor Hub و SignalR Hub
-app.MapBlazorHub(); // اضافه کردن Hub برای Blazor (در صورت نیاز)
-app.MapHub<SignalHub>("/signalHub"); // اضافه کردن Hub برای SignalR
-
-// حذف این خط در صورت استفاده از Web API بدون Blazor
-// app.MapFallbackToPage("/_Host"); 
-
-// اجرای اپلیکیشن
+// اجرای برنامه
 app.Run();
