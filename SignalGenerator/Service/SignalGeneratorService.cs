@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using SignalGenerator;
 using SignalGenerator.Modbus;
 using SignalGenerator.Models;
-using SignalGenerator.Services;
 using System.Text;
 using System.Text.Json;
 
@@ -35,7 +35,7 @@ public class SignalGeneratorService
         _httpClient = httpClient;
 
         // خواندن URL از تنظیمات
-        RequestUriAPI = configuration["AppSettings:ApiUrl"] + "/api/SignalReceiver"; // استفاده از URL API در فایل appsettings.json
+        RequestUriAPI = configuration["AppSettings:ApiUrl"] + "/receiveSignalAPI"; // استفاده از URL API در فایل appsettings.json
     }
 
     // این متد برای اتصال کال‌بک UI به سرویس است
@@ -75,6 +75,7 @@ public class SignalGeneratorService
     private async Task GenerateSignals(CancellationToken token)
     {
         if (_config == null || token.IsCancellationRequested) return;
+
         try
         {
             _logger.LogInformation("Generating signals...");
@@ -100,8 +101,16 @@ public class SignalGeneratorService
     {
         try
         {
-            await _hubContext.Clients.All.SendAsync("ReceiveSignalData", signalData);
-            _logger.LogInformation("Signal sent to SignalR clients.");
+            // بررسی وضعیت اتصال SignalR و ارسال داده‌ها
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveSignalData", signalData);
+                _logger.LogInformation("Signal sent to SignalR clients.");
+            }
+            else
+            {
+                _logger.LogError("SignalR connection is not initialized.");
+            }
         }
         catch (Exception ex)
         {
@@ -113,7 +122,12 @@ public class SignalGeneratorService
     {
         try
         {
-            if (!_modbusClientManager.IsConnected) _modbusClientManager.Connect();
+            // بررسی اتصال به Modbus قبل از ارسال سیگنال
+            if (!_modbusClientManager.IsConnected)
+            {
+                _logger.LogInformation("Connecting to Modbus...");
+                _modbusClientManager.Connect();
+            }
             _modbusClientManager.WriteModbusData(0, signalData.Select(d => (int)(d * 1000)).ToArray());
             _logger.LogInformation("Signal sent to Modbus.");
         }
@@ -129,7 +143,15 @@ public class SignalGeneratorService
         {
             var content = new StringContent(JsonSerializer.Serialize(new { SignalData = signalData, Timestamp = DateTime.Now }), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(RequestUriAPI, content);
-            _logger.LogInformation(response.IsSuccessStatusCode ? "Signal sent to HTTP API successfully." : $"Failed to send signal to HTTP API. Status: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Signal sent to HTTP API successfully.");
+            }
+            else
+            {
+                _logger.LogError($"Failed to send signal to HTTP API. Status: {response.StatusCode}");
+            }
         }
         catch (Exception ex)
         {

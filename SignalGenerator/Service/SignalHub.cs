@@ -1,25 +1,31 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using SignalGenerator.Models;
 using System.Threading.Tasks;
 
-namespace SignalGenerator.Services
+namespace SignalGenerator
 {
     public class SignalHub : Hub
     {
-       
-
-        // ارسال وضعیت ارسال بسته‌ها به همه کلاینت‌ها
-        public async Task SendPacketCount(int sentPackets)
+        // این متد برای ارسال داده‌ها به کلاینت‌ها از سمت سرور
+        public async Task SendSignalDataToClients(List<double> signalData)
         {
-            await Clients.All.SendAsync("UpdateSentPackets", sentPackets);
+            // ارسال داده سیگنال به تمام کلاینت‌های متصل
+            await Clients.All.SendAsync("ReceiveSignalData", signalData);
         }
 
-        // ارسال زمان باقی‌مانده به کلاینت‌ها
-        public async Task SendTimeRemaining(double timeRemaining)
+        // متد برای اتصال جدید (می‌توانید از این متد برای مدیریت اتصال‌ها استفاده کنید)
+        public override Task OnConnectedAsync()
         {
-            await Clients.All.SendAsync("UpdateTimeRemaining", timeRemaining);
+            // می‌توانید منطق خاصی برای هر اتصال جدید اضافه کنید
+            Console.WriteLine("A new client has connected.");
+            return base.OnConnectedAsync();
         }
 
-       
+        // متد برای قطع اتصال (برای مدیریت قطع اتصال‌ها)
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            // منطق خاصی برای قطع اتصال می‌توانید اضافه کنید
+            Console.WriteLine("A client has disconnected.");
+            return base.OnDisconnectedAsync(exception);
+        }
     }
 }

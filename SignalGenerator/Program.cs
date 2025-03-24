@@ -3,7 +3,7 @@ using SignalGenerator.Modbus;
 using SignalGenerator.signalLogs;
 using Microsoft.Extensions.Configuration;
 using SignalGenerator.Models;
-using SignalGenerator.Services;
+using SignalGenerator;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -16,15 +16,7 @@ namespace SignalReceiver.Controllers
         {
             return View();
         }
-
-        // اکشن برای دریافت سیگنال‌ها
-        public async Task<IActionResult> SignalReceiver()
-        {
-            // دریافت سیگنال‌ها از SignalReceiverService
-            var signals = await _signalReceiverService.GetSignalFromApi();  // یا از Modbus یا SignalR استفاده کنید
-
-            return View(signals);
-        }
+       
 
         public IActionResult Privacy()
         {

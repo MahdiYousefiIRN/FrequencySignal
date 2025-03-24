@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SignalReceiver.Models;
+using Microsoft.AspNetCore.Mvc;
 
 public class SignalReceiverService
 {
@@ -76,17 +79,22 @@ public class SignalReceiverService
     }
 
     // متد برای دریافت سیگنال‌ها از API
-    public async Task<List<double>> GetSignalFromApi()
+    public async Task<List<double>> GetSignalFromApi([FromBody] SignalRequestDto signalRequestDto)
     {
         try
         {
-            // ارسال درخواست GET به API
-            var response = await _httpClient.GetStringAsync("http://localhost:5000/api/packetdata");  // URL فرضی برای API
+            if (signalRequestDto == null || signalRequestDto.SignalData == null || !signalRequestDto.SignalData.Any())
+            {
+                Console.WriteLine("Error: No valid signal data received from API.");
+                return new List<double>();
+            }
 
-            // پردازش داده‌های دریافتی از API
-            var signals = JsonSerializer.Deserialize<List<double>>(response);
+            foreach (var item in signalRequestDto.SignalData)
+            {
+                Console.WriteLine($"Data: {item}, Timestamp: {signalRequestDto.Timestamp}");
+            }
 
-            return signals ?? new List<double>();
+            return signalRequestDto.SignalData;
         }
         catch (Exception ex)
         {
@@ -94,6 +102,7 @@ public class SignalReceiverService
             return new List<double>();
         }
     }
+
 
     // متد برای دریافت سیگنال‌ها از Modbus
     public async Task<List<double>> ReceiveSignalFromModbus()
@@ -120,4 +129,5 @@ public class SignalReceiverService
     {
         return _signalData;
     }
+
 }
