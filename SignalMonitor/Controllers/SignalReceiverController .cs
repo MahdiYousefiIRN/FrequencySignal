@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace SignalMonitor.Controllers
 {
-    public class PacketDataController : Controller
+    public class SignalReceiverController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHubContext<PacketDataHub> _hubContext;
+        private readonly IHubContext<SignalHub> _hubContext;
 
-        public PacketDataController(ApplicationDbContext context, IHubContext<PacketDataHub> hubContext)
+        public SignalReceiverController(ApplicationDbContext context, IHubContext<SignalHub> hubContext)
         {
             _context = context;
             _hubContext = hubContext;
@@ -24,8 +24,8 @@ namespace SignalMonitor.Controllers
         {
             try
             {
-                // تبدیل داده‌های دریافتی به مدل PacketData
-                var packetData = new PacketData
+                // تبدیل داده‌های دریافتی به مدل SignalData
+                var SignalData = new SignalData
                 {
                     // اختصاص مقادیر به ویژگی‌های مدل از داده‌های دریافتی
                     SourceIP = signalData.SourceIP,
@@ -39,11 +39,11 @@ namespace SignalMonitor.Controllers
                 };
 
                 // ذخیره داده‌ها در پایگاه داده
-                _context.PacketData.Add(packetData);
+                _context.SignalData.Add(SignalData);
                 await _context.SaveChangesAsync();
 
                 // ارسال داده به کلاینت‌ها از طریق SignalR (در صورت نیاز)
-                await _hubContext.Clients.All.SendAsync("ReceiveSignalData", packetData);
+                await _hubContext.Clients.All.SendAsync("ReceiveSignalData", SignalData);
 
                 return Ok();
             }
@@ -55,11 +55,11 @@ namespace SignalMonitor.Controllers
         }
 
 
-        // اکشن برای نمایش داده‌های PacketData
+        // اکشن برای نمایش داده‌های SignalData
         public IActionResult Index()
         {
-            var packetDataList = _context.PacketData.ToList(); // دریافت داده‌ها از پایگاه داده
-            return View(packetDataList); // ارسال داده‌ها به ویو
+            var signalDataList = _context.SignalData.ToList(); // دریافت داده‌ها از پایگاه داده
+            return View(signalDataList); // ارسال داده‌ها به ویو
         }
     }
 }

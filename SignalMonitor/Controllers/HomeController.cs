@@ -20,10 +20,10 @@ namespace SignalMonitor.Controllers
             return View();
         }
 
-        // اکشن برای نمایش لیست داده‌های PacketData از پایگاه داده
+        // اکشن برای نمایش لیست داده‌های SignalData از پایگاه داده
         public IActionResult PacketDataList()
         {
-            var packetDataList = _context.PacketData.ToList(); // دریافت داده‌ها از پایگاه داده
+            var packetDataList = _context.SignalData.ToList(); // دریافت داده‌ها از پایگاه داده
             return View(packetDataList); // ارسال داده‌ها به ویو
         }
     }

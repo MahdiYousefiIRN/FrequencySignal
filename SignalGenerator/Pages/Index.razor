@@ -9,23 +9,23 @@
 <h3>Signal Generator</h3>
 
 <div>
-    <label for="signalCount">Number of Signals:</label>
-    <input type="number" id="signalCount" value="@_SignalConfigGeneration.SignalCount" @onchange="UpdateSignalCount" />
+	<label for="signalCount">Number of Signals:</label>
+	<input type="number" id="signalCount" value="@_SignalConfigGeneration.SignalCount" @onchange="UpdateSignalCount" />
 </div>
 
 <div>
-    <label for="minFrequency">Min Frequency (Hz):</label>
-    <input type="number" id="minFrequency" value="@_SignalConfigGeneration.MinFrequency" @onchange="UpdateMinFrequency" />
+	<label for="minFrequency">Min Frequency (Hz):</label>
+	<input type="number" id="minFrequency" value="@_SignalConfigGeneration.MinFrequency" @onchange="UpdateMinFrequency" />
 </div>
 
 <div>
-    <label for="maxFrequency">Max Frequency (Hz):</label>
-    <input type="number" id="maxFrequency" value="@_SignalConfigGeneration.MaxFrequency" @onchange="UpdateMaxFrequency" />
+	<label for="maxFrequency">Max Frequency (Hz):</label>
+	<input type="number" id="maxFrequency" value="@_SignalConfigGeneration.MaxFrequency" @onchange="UpdateMaxFrequency" />
 </div>
 
 <div>
-    <label for="interval">Interval (ms):</label>
-    <input type="number" id="interval" value="@_SignalConfigGeneration.IntervalMs" @onchange="UpdateInterval" />
+	<label for="interval">Interval (ms):</label>
+	<input type="number" id="interval" value="@_SignalConfigGeneration.IntervalMs" @onchange="UpdateInterval" />
 </div>
 
 <button @onclick="StartGenerating">Start</button>
@@ -33,153 +33,154 @@
 
 <h4>Generated Signals</h4>
 <ul>
-    @foreach (var signal in signals)
-    {
-        <li>@signal.ToString("F4") Hz</li>
-    }
+	@foreach (var signal in signals)
+	{
+		<li>@signal.ToString("F4") Hz</li>
+	}
 </ul>
 
 <h4>Time Remaining: @_SignalConfigGeneration.TimeRemainingSecs seconds</h4>
 
 @code {
-    private List<double> signals = new();
-    private SignalConfigGeneration _SignalConfigGeneration = new SignalConfigGeneration();
-    private HubConnection _hubConnection;
+	private List<double> signals = new();
+	private SignalConfigGeneration _SignalConfigGeneration = new SignalConfigGeneration();
+	private HubConnection _hubConnection;
 
-    // اتصال به SignalR
-    protected override async Task OnInitializedAsync()
-    {
-        _hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/signalHub"))
-            .Build();
+	// متد برای شروع اتصال SignalR
+	protected override async Task OnInitializedAsync()
+	{
+		_hubConnection = new HubConnectionBuilder()
+		.WithUrl(NavigationManager.ToAbsoluteUri("http://localhost:5002/signalHub")) // تغییر URL SignalR به پورت 5002
+		.Build();
 
-        _hubConnection.On<List<double>>("ReceiveSignalData", (signalData) =>
-        {
-            signals = signalData; // به روز رسانی داده‌های سیگنال
+		_hubConnection.On<List<double>>("ReceiveSignalData", (signalData) =>
+		{
+			signals = signalData; // به روز رسانی داده‌های سیگنال
 
-            // استفاده از InvokeAsync برای اطمینان از اجرا در نخ UI
-            InvokeAsync(() =>
-            {
-                StateHasChanged(); // برای بروزرسانی UI
-            });
-        });
+			// استفاده از InvokeAsync برای اطمینان از اجرا در نخ UI
+			InvokeAsync(() =>
+			{
+				StateHasChanged(); // برای بروزرسانی UI
+			});
+		});
 
-        try
-        {
-            await _hubConnection.StartAsync();
-            Console.WriteLine("SignalR connection established.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error establishing SignalR connection: {ex.Message}");
-        }
+		try
+		{
+			// بررسی اتصال
+			await _hubConnection.StartAsync();
+			Console.WriteLine("SignalR connection established.");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error establishing SignalR connection: {ex.Message}");
+		}
 
-        // ثبت کال‌بک برای دریافت داده‌ها از سرویس
-        SignalGeneratorService.SetUpdateSignalDataCallback(UpdateSignalData);
-    }
+		// ثبت کال‌بک برای دریافت داده‌ها از سرویس
+		SignalGeneratorService.SetUpdateSignalDataCallback(UpdateSignalData);
+	}
 
-    private void UpdateSignalData(List<double> signalData)
-    {
-        signals = signalData;
-        InvokeAsync(StateHasChanged);
-    }
+	private void UpdateSignalData(List<double> signalData)
+	{
+		signals = signalData;
+		InvokeAsync(StateHasChanged);
+	}
 
-    // متدهای بروزرسانی ورودی‌ها
-    private void UpdateSignalCount(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int value))
-        {
-            _SignalConfigGeneration.SignalCount = value;
-            SignalGeneratorService.UpdateSignalCount(value);
-            StateHasChanged();
-        }
-    }
+	// متدهای بروزرسانی ورودی‌ها
+	private void UpdateSignalCount(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value?.ToString(), out int value))
+		{
+			_SignalConfigGeneration.SignalCount = value;
+			SignalGeneratorService.UpdateSignalCount(value);
+			StateHasChanged();
+		}
+	}
 
-    private void UpdateMinFrequency(ChangeEventArgs e)
-    {
-        if (double.TryParse(e.Value?.ToString(), out double value))
-        {
-            _SignalConfigGeneration.MinFrequency = value;
-            SignalGeneratorService.UpdateFrequencyRange(value, _SignalConfigGeneration.MaxFrequency);
-            StateHasChanged();
-        }
-    }
+	private void UpdateMinFrequency(ChangeEventArgs e)
+	{
+		if (double.TryParse(e.Value?.ToString(), out double value))
+		{
+			_SignalConfigGeneration.MinFrequency = value;
+			SignalGeneratorService.UpdateFrequencyRange(value, _SignalConfigGeneration.MaxFrequency);
+			StateHasChanged();
+		}
+	}
 
-    private void UpdateMaxFrequency(ChangeEventArgs e)
-    {
-        if (double.TryParse(e.Value?.ToString(), out double value))
-        {
-            _SignalConfigGeneration.MaxFrequency = value;
-            SignalGeneratorService.UpdateFrequencyRange(_SignalConfigGeneration.MinFrequency, value);
-            StateHasChanged();
-        }
-    }
+	private void UpdateMaxFrequency(ChangeEventArgs e)
+	{
+		if (double.TryParse(e.Value?.ToString(), out double value))
+		{
+			_SignalConfigGeneration.MaxFrequency = value;
+			SignalGeneratorService.UpdateFrequencyRange(_SignalConfigGeneration.MinFrequency, value);
+			StateHasChanged();
+		}
+	}
 
-    private void UpdateInterval(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int value))
-        {
-            _SignalConfigGeneration.IntervalMs = value;
-            SignalGeneratorService.UpdateInterval(value);
-            StateHasChanged();
-        }
-    }
+	private void UpdateInterval(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value?.ToString(), out int value))
+		{
+			_SignalConfigGeneration.IntervalMs = value;
+			SignalGeneratorService.UpdateInterval(value);
+			StateHasChanged();
+		}
+	}
 
-    private CancellationTokenSource _cancellationTokenSource;
-    private Task _signalGenerationTask;
+	private CancellationTokenSource _cancellationTokenSource;
+	private Task _signalGenerationTask;
 
-    // شروع تولید سیگنال‌ها
-    private async Task StartGenerating()
-    {
-        try
-        {
-            // اطمینان از توقف تولید سیگنال‌ها اگر قبلاً شروع شده باشد
-            if (_cancellationTokenSource != null)
-            {
-                await StopGenerating();  // جلوگیری از اجرای چندباره
-            }
+	// شروع تولید سیگنال‌ها
+	private async Task StartGenerating()
+	{
+		try
+		{
+			// اطمینان از توقف تولید سیگنال‌ها اگر قبلاً شروع شده باشد
+			if (_cancellationTokenSource != null)
+			{
+				await StopGenerating();  // جلوگیری از اجرای چندباره
+			}
 
-            // راه‌اندازی دوباره تولید سیگنال
-            _cancellationTokenSource = new CancellationTokenSource();
-            await SignalGeneratorService.StartSignalGeneration(_SignalConfigGeneration, _cancellationTokenSource.Token);
-            Console.WriteLine("Signal generation started.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-    }
+			// راه‌اندازی دوباره تولید سیگنال
+			_cancellationTokenSource = new CancellationTokenSource();
+			await SignalGeneratorService.StartSignalGeneration(_SignalConfigGeneration, _cancellationTokenSource.Token);
+			Console.WriteLine("Signal generation started.");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error: {ex.Message}");
+		}
+	}
 
 
-    // توقف تولید سیگنال‌ها
-    private async Task StopGenerating()
-    {
-        try
-        {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            Console.WriteLine("Signal generation stopped.");
+	// توقف تولید سیگنال‌ها
+	private async Task StopGenerating()
+	{
+		try
+		{
+			_cancellationTokenSource?.Cancel();
+			_cancellationTokenSource?.Dispose();
+			_cancellationTokenSource = null;
+			Console.WriteLine("Signal generation stopped.");
 
-            // قطع اتصال SignalR
-            if (_hubConnection.State == HubConnectionState.Connected)
-            {
-                await _hubConnection.StopAsync();
-                Console.WriteLine("SignalR connection stopped.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
-    }
+			// قطع اتصال SignalR
+			if (_hubConnection.State == HubConnectionState.Connected)
+			{
+				await _hubConnection.StopAsync();
+				Console.WriteLine("SignalR connection stopped.");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error: {ex.Message}");
+		}
+	}
 
-    // اطمینان از قطع اتصال هنگام نهایی شدن
-    public async ValueTask DisposeAsync()
-    {
-        if (_hubConnection != null)
-        {
-            await _hubConnection.DisposeAsync();
-        }
-    }
+	// اطمینان از قطع اتصال هنگام نهایی شدن
+	public async ValueTask DisposeAsync()
+	{
+		if (_hubConnection != null)
+		{
+			await _hubConnection.DisposeAsync();
+		}
+	}
 }

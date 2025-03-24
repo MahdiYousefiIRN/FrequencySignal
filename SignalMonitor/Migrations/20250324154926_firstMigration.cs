@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SignalMonitor.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class firstMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "PacketData",
+                name: "SignalData",
                 columns: table => new
                 {
                     PacketId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -28,7 +28,7 @@ namespace SignalMonitor.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PacketData", x => x.PacketId);
+                    table.PrimaryKey("PK_SignalData", x => x.PacketId);
                 });
         }
 
@@ -36,7 +36,7 @@ namespace SignalMonitor.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PacketData");
+                name: "SignalData");
         }
     }
 }

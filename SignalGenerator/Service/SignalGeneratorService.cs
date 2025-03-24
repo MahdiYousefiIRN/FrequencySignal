@@ -35,7 +35,7 @@ public class SignalGeneratorService
         _httpClient = httpClient;
 
         // خواندن URL از تنظیمات
-        RequestUriAPI = configuration["AppSettings:ApiUrl"] + "/api/packetdata"; // استفاده از URL API در فایل appsettings.json
+        RequestUriAPI = configuration["AppSettings:ApiUrl"] + "/api/SignalReceiver"; // استفاده از URL API در فایل appsettings.json
     }
 
     // این متد برای اتصال کال‌بک UI به سرویس است

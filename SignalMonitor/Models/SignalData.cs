@@ -7,7 +7,7 @@ namespace SignalMonitor.Models
     /// <summary>
     /// مدل داده‌ای برای نمایش اطلاعات بسته‌های دریافتی از پروتکل‌های مختلف
     /// </summary>
-    public class PacketData : INotifyPropertyChanged
+    public class SignalData : INotifyPropertyChanged
     {
         private double _value; // مقدار عددی بسته
         private bool _isMalicious; // نشان‌دهنده این‌که بسته مشکوک یا مخرب است یا نه

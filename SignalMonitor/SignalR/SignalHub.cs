@@ -3,7 +3,7 @@ using SignalMonitor.Models;
 
 namespace SignalMonitor.SignalR
 {
-    public class PacketDataHub : Hub
+    public class SignalHub : Hub
     {
        
         public async Task SendMessage(string message)

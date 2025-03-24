@@ -36,13 +36,18 @@ namespace SignalMonitor
 
             app.UseAuthorization();
 
-            // تنظیم مسیر برای کنترلر Home و PacketData
+            // تنظیم مسیر برای کنترلر Home و SignalData
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+            // اضافه کردن مسیر اختصاصی برای SignalData
+            app.MapControllerRoute(
+                name: "signalReceiver",
+                pattern: "SignalReceiver/{action=Index}/{id?}",
+                defaults: new { controller = "SignalReceiver" });
 
             // تنظیم مسیر برای Hub SignalR
-            app.MapHub<PacketDataHub>("/packetDataHub");
+            app.MapHub<SignalHub>("/SignalR/SignalHub");
 
             app.Run();
         }

@@ -12,14 +12,14 @@ namespace SignalMonitor.Data
         {
         }
 
-        public DbSet<PacketData> PacketData { get; set; }
+        public DbSet<SignalData> SignalData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // تنظیم کلید اصلی برای PacketData
-            modelBuilder.Entity<PacketData>()
+            // تنظیم کلید اصلی برای SignalData
+            modelBuilder.Entity<SignalData>()
                 .HasKey(p => p.PacketId);  // تنظیم PacketId به عنوان کلید اصلی
         }
     }

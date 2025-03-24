@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -10,16 +11,20 @@ public class SignalReceiverService
     private HubConnection _hubConnection;
     private HttpClient _httpClient;
     private List<double> _signalData;
-    private string _modbusUrl = "http://localhost:5001/modbus";  // URL فرضی برای Modbus
+    private string _modbusUrl = "http://localhost:5002/modbus";  // URL فرضی برای Modbus
 
-    public SignalReceiverService(HttpClient httpClient)
+    // افزودن IConfiguration به سازنده سرویس برای دسترسی به تنظیمات
+    public SignalReceiverService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _signalData = new List<double>();
 
+        // دریافت URL SignalR از appsettings.json
+        var signalRHubUrl = configuration["AppSettings:SignalRHubUrl"];
+
         // ایجاد و تنظیم اتصال SignalR به URL مناسب
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:5000/signalHub")  // آدرس سرور SignalR
+            .WithUrl(signalRHubUrl)  // استفاده از آدرس دریافت شده از appsettings.json
             .Build();
 
         // تعریف متدهایی که باید هنگام دریافت داده از SignalR اجرا شوند

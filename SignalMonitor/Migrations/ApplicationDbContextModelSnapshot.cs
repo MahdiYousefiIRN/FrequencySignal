@@ -17,12 +17,12 @@ namespace SignalMonitor.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.20")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("SignalMonitor.Models.PacketData", b =>
+            modelBuilder.Entity("SignalMonitor.Models.SignalData", b =>
                 {
                     b.Property<Guid>("PacketId")
                         .ValueGeneratedOnAdd()
@@ -62,7 +62,7 @@ namespace SignalMonitor.Migrations
 
                     b.HasKey("PacketId");
 
-                    b.ToTable("PacketData");
+                    b.ToTable("SignalData");
                 });
 #pragma warning restore 612, 618
         }

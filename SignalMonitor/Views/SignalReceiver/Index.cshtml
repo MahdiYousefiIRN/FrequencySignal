@@ -1,7 +1,7 @@
-﻿@model IEnumerable<SignalMonitor.Models.PacketData>
+﻿@model IEnumerable<SignalMonitor.Models.SignalData>
 
 @{
-    ViewData["Title"] = "Packet Data"; // عنوان صفحه
+    ViewData["Title"] = "Signal Data"; // عنوان صفحه
 }
 
 @section Styles {
@@ -85,7 +85,7 @@
 <button id="theme-toggle" class="toggle-theme light-mode-btn">🌙 حالت تاریک</button>
 
 <!-- عنوان بخش لیست داده‌ها -->
-<h2 class="text-center mb-4">Packet Data List</h2>
+<h2 class="text-center mb-4">Signal Data List</h2>
 
 @if (Model.Any())
 {
@@ -93,7 +93,7 @@
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
-                <th>Packet Id</th>
+                <th>Signal Id</th>
                 <th>Source IP</th>
                 <th>Destination IP</th>
                 <th>Protocol</th>

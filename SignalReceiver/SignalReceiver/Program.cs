@@ -49,7 +49,7 @@ app.MapControllerRoute(
 
 app.MapRazorPages(); // فعال‌سازی Razor Pages
 app.MapBlazorHub(); // تنظیم Hub برای Blazor
-app.MapHub<SignalHub>("/signalHub"); // تنظیم مسیر Hub برای SignalR
+app.MapHub<SignalHub>("/SignalHub"); // تنظیم مسیر Hub برای SignalR
 
 // اجرای برنامه
 app.Run();
